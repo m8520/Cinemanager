@@ -1,10 +1,13 @@
 package net.lzzy.cinemanager.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -19,7 +22,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import net.lzzy.cinemanager.R;
+import net.lzzy.cinemanager.framents.AddCinemasFragment;
+import net.lzzy.cinemanager.framents.AddOrderFrament;
 import net.lzzy.cinemanager.framents.CinemasFragment;
+import net.lzzy.cinemanager.framents.OrderFragment;
 import net.lzzy.cinemanager.models.Cinema;
 import net.lzzy.cinemanager.models.Order;
 import net.lzzy.cinemanager.models.OrderFactory;
@@ -27,15 +33,18 @@ import net.lzzy.simpledatepicker.CustomDatePicker;
 import net.lzzy.sqllib.GenericAdapter;
 
 import java.util.List;
+import java.util.concurrent.RecursiveTask;
 
 /**
  * @author Administrator
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+    private FragmentManager manager=getSupportFragmentManager();
     private LinearLayout layoutMenu;
     private TextView tvTitle;
     private SearchView search;
-    private FragmentManager manager=getSupportFragmentManager();
+    private SparseArray<String> titleArrat=new SparseArray<>();
+    private SparseArray<Fragment> fragmentArray = new SparseArray<>();
 
 
 
@@ -50,6 +59,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /** 标题栏 **/
     private void setTitleMenu() {
+        titleArrat.put(R.id.bar_title_tv_add_cinema,"添加影院");
+        titleArrat.put(R.id.bar_title_tv_view_cinema,"影院列表");
+        titleArrat.put(R.id.bar_title_tv_add_order,"添加订单");
+        titleArrat.put(R.id.bar_title_tv_view_order,"我的订单");
         layoutMenu = findViewById(R.id.bar_title_layout_menu);
         layoutMenu.setVisibility(View.GONE);
         findViewById(R.id.bar_title_img_menu).setOnClickListener(new View.OnClickListener() {
@@ -79,33 +92,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         layoutMenu.setVisibility(View.GONE);
-        switch (v.getId()) {
+        tvTitle.setText(titleArrat.get(v.getId()));
+        FragmentTransaction transaction = manager.beginTransaction();
+        Fragment fragment = fragmentArray.get(v.getId());
+        if (fragment == null) {
+            fragment = createFragment(v.getId());
+            fragmentArray.put(v.getId(), fragment);
+            transaction.add(R.id.fragment_container, fragment);
+        }
+        for (Fragment f : manager.getFragments()){
+            transaction.hide(f);
+        }
+        transaction.show(fragment).commit();
+    }
+
+    private Fragment createFragment(int id){
+        switch (id) {
             case R.id.bar_title_tv_add_cinema:
+                return new AddCinemasFragment();
 
-                break;
             case R.id.bar_title_tv_view_cinema:
-                tvTitle.setText("影院列表");
-                manager.beginTransaction()
-                        .replace(R.id.fragment_container,new CinemasFragment())
-                        .commit();
+                return new CinemasFragment();
 
-                break;
             case R.id.bar_title_tv_add_order:
-                break;
+                return new AddOrderFrament();
+
             case R.id.bar_title_tv_view_order:
-                tvTitle.setText("我的订单");
-                manager.beginTransaction()
-                        .replace(R.id.fragment_container,new CinemasFragment())
-                        .commit();
-                break;
+                return new OrderFragment();
             default:
                 break;
         }
-
-
+        return null;
     }
-
-
-
 }
 
