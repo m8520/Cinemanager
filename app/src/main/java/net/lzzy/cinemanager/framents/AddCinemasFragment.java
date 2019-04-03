@@ -1,11 +1,13 @@
 package net.lzzy.cinemanager.framents;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,10 +34,14 @@ public class AddCinemasFragment extends BaseFragment {
     private String area="鱼峰区";
     private TextView tvArea;
     private EditText edtName;
+    private OnFragmentTnteractionListener listener;
+    private OnCinemaCretedListener cinemaListener;
+
 
     @Override
     protected void populate() {
-        tvArea = find(R.id.dialog_add_cinema_btn_save);
+        listener.hidesearch();
+        tvArea = find(R.id.dialog_add_tv_area);
         edtName = find(R.id.dialog_add_cinema_edt_name);
         find(R.id.dialog_add_cinema_layout_area).setOnClickListener(v -> {
             JDCityPicker cityPicker = new JDCityPicker();
@@ -46,10 +52,10 @@ public class AddCinemasFragment extends BaseFragment {
                     AddCinemasFragment.this.province = province.getName();
                     AddCinemasFragment.this.city = city.getName();
                     AddCinemasFragment.this.area = district.getName();
-                    String loc = province.getName()+city.getName()+district.getName();
+                    String loc = province.getName() + city.getName() + district.getName();
                     tvArea.setText(loc);
-                }
 
+                }
             });
             cityPicker.showCityPicker();
         });
@@ -66,9 +72,10 @@ public class AddCinemasFragment extends BaseFragment {
             cinema.setProvince(province);
             cinema.setLocation(tvArea.getText().toString());
             edtName.setText("");
+            cinemaListener.saveCinema(cinema);
         });
-
-
+        find(R.id.dialog_add_cinema_btn_cancel).setOnClickListener(v ->{cinemaListener.cancelAddCinema();
+        });
     }
 
     @Override
@@ -76,6 +83,47 @@ public class AddCinemasFragment extends BaseFragment {
         return R.layout.fragment_addcinemas;
     }
 
+    @Override
+    public void search(String kw) {
 
+    }
+
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden){
+            listener.hidesearch();
+        }
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            listener = (OnFragmentTnteractionListener) context;
+            cinemaListener = (OnCinemaCretedListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + "必须实现OnFragmentTnteractionListener&OnCinemaCretedListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        listener = null;
+        cinemaListener =null;
+    }
+
+    public interface OnCinemaCretedListener{
+        /**
+         *
+         */
+        void cancelAddCinema();
+
+
+        void saveCinema(Cinema cinema);
+    }
 
 }

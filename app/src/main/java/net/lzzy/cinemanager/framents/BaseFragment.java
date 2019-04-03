@@ -32,7 +32,7 @@ public abstract class BaseFragment extends Fragment {
     }
 
     /**
-     * 执行
+     * 执行onCreateView中初始化视图组件
      */
     protected  abstract void populate();
 
@@ -42,6 +42,6 @@ public abstract class BaseFragment extends Fragment {
         return Objects.requireNonNull(getView()).findViewById(id);
     }
 
-
+    public abstract void search(String kw);
 
 }

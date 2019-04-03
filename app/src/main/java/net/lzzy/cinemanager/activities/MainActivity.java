@@ -24,11 +24,14 @@ import android.widget.TextView;
 import net.lzzy.cinemanager.R;
 import net.lzzy.cinemanager.framents.AddCinemasFragment;
 import net.lzzy.cinemanager.framents.AddOrderFrament;
+import net.lzzy.cinemanager.framents.BaseFragment;
 import net.lzzy.cinemanager.framents.CinemasFragment;
+import net.lzzy.cinemanager.framents.OnFragmentTnteractionListener;
 import net.lzzy.cinemanager.framents.OrderFragment;
 import net.lzzy.cinemanager.models.Cinema;
 import net.lzzy.cinemanager.models.Order;
 import net.lzzy.cinemanager.models.OrderFactory;
+import net.lzzy.cinemanager.utils.ViewUtils;
 import net.lzzy.simpledatepicker.CustomDatePicker;
 import net.lzzy.sqllib.GenericAdapter;
 
@@ -38,9 +41,10 @@ import java.util.concurrent.RecursiveTask;
 /**
  * @author Administrator
  */
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener,
+        OnFragmentTnteractionListener,AddCinemasFragment.OnCinemaCretedListener{
     private FragmentManager manager=getSupportFragmentManager();
-    private LinearLayout layoutMenu;
+    private View layoutMenu;
     private TextView tvTitle;
     private SearchView search;
     private SparseArray<String> titleArrat=new SparseArray<>();
@@ -55,6 +59,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
         setTitleMenu();
+        search.setOnQueryTextListener(new ViewUtils.AbstractQueryHandler(){
+            @Override
+            public boolean handleQuery(String kw) {
+                Fragment fragment = manager.findFragmentById(R.id.fragment_container);
+                if (fragment!=null){
+                    if (fragment instanceof BaseFragment){
+                        ((BaseFragment)fragment).search(kw);
+                    }
+                }
+                return true;
+            }
+        });
     }
 
     /** 标题栏 **/
@@ -62,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         titleArrat.put(R.id.bar_title_tv_add_cinema,"添加影院");
         titleArrat.put(R.id.bar_title_tv_view_cinema,"影院列表");
         titleArrat.put(R.id.bar_title_tv_add_order,"添加订单");
-        titleArrat.put(R.id.bar_title_tv_view_order,"我的订单");
+        titleArrat.put(R.id.bar_title_tv_view_search,"我的订单");
         layoutMenu = findViewById(R.id.bar_title_layout_menu);
         layoutMenu.setVisibility(View.GONE);
         findViewById(R.id.bar_title_img_menu).setOnClickListener(new View.OnClickListener() {
@@ -78,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.bar_title_tv_add_cinema).setOnClickListener(this);
         findViewById(R.id.bar_title_tv_view_cinema).setOnClickListener(this);
         findViewById(R.id.bar_title_tv_add_order).setOnClickListener(this);
-        findViewById(R.id.bar_title_tv_view_order).setOnClickListener(this);
+        findViewById(R.id.bar_title_tv_view_search).setOnClickListener(this);
         findViewById(R.id.bar_title_tv_exit).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -117,12 +133,61 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.bar_title_tv_add_order:
                 return new AddOrderFrament();
 
-            case R.id.bar_title_tv_view_order:
+            case R.id.bar_title_tv_view_search:
                 return new OrderFragment();
             default:
-                break;
+                return new OrderFragment();
         }
-        return null;
     }
-}
+
+
+    @Override
+    public void hidesearch() {
+        search.setVisibility(View.INVISIBLE);
+    }
+
+    /**
+     * 保存
+     */
+    @Override
+    public void cancelAddCinema() {
+        Fragment addCinemaSFragment = fragmentArray.get(R.id.bar_title_tv_add_cinema);
+        if (addCinemaSFragment == null) {
+            return;
+        }
+        Fragment cinemasFragment = fragmentArray.get(R.id.bar_title_tv_view_cinema);
+        FragmentTransaction transaction = manager.beginTransaction();
+        if (cinemasFragment == null) {
+            cinemasFragment = new CinemasFragment();
+            fragmentArray.put(R.id.bar_title_tv_view_cinema, cinemasFragment);
+            transaction.add(R.id.fragment_container, cinemasFragment);
+        }
+        transaction.hide(addCinemaSFragment).show(cinemasFragment).commit();
+        tvTitle.setText(titleArrat.get(R.id.bar_title_tv_view_cinema));
+    }
+
+    /**
+     *取消
+     */
+    @Override
+    public void saveCinema(Cinema cinema) {
+        Fragment addCinemaFrament = fragmentArray.get(R.id.bar_title_tv_add_cinema);
+        if (addCinemaFrament == null){
+            return;
+    }
+        Fragment cinemasFragment = fragmentArray.get(R.id.bar_title_tv_view_cinema);
+        FragmentTransaction transaction = manager.beginTransaction();
+        if (cinemasFragment ==null) {
+            //创建CinemaFragment同时要传Cinema对象进来
+            cinemasFragment = new CinemasFragment(cinema);
+            fragmentArray.put(R.id.bar_title_tv_view_cinema, cinemasFragment);
+            transaction.add(R.id.fragment_container, cinemasFragment);
+        }else {
+            ((CinemasFragment) cinemasFragment).save(cinema);
+        }
+        transaction.hide(addCinemaFrament).show(cinemasFragment).commit();
+        tvTitle.setText(titleArrat.get(R.id.bar_title_tv_view_cinema));
+        }
+    }
+
 

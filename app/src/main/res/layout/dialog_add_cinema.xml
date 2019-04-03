@@ -34,7 +34,7 @@
         <TextView android:id="@+id/dialog_add_tv_area"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="广西柳州市鱼峰区"
+             android:hint="广西柳州市鱼峰区"
             android:textColor="@color/colorPrimary"
             android:textSize="20sp"
             android:layout_marginStart="120dp"

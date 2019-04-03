@@ -2,6 +2,7 @@ package net.lzzy.cinemanager.framents;
 
 import android.os.Bundle;
 import android.text.Layout;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,7 @@ import net.lzzy.sqllib.GenericAdapter;
 import net.lzzy.sqllib.ViewHolder;
 
 import java.util.List;
+import java.util.PrimitiveIterator;
 
 /**
  * Created by lzzy_gxy on 2019/3/26.
@@ -31,18 +33,29 @@ public class CinemasFragment extends BaseFragment {
     private ListView lv;
     private List<Cinema> cinemas;
     private CinemaFactory factory = CinemaFactory.getInstance();
+    private Cinema cinema;
+    private GenericAdapter<Cinema> adapter1;
+
+    public CinemasFragment() {
+    }
+
+    public CinemasFragment(Cinema cinema) {
+        this.cinema = cinema;
+    }
+
+
     @Override
     protected void populate() {
         lv = find(R.id.activity_cinema_lv);
         View empty = find(R.id.activity_cinemas_tv_none);
         lv.setEmptyView(empty);
         cinemas = factory.get();
-        GenericAdapter<Cinema> adapter = new GenericAdapter<Cinema>(getActivity(),
-            R.layout.cinemas_item,cinemas){
+        adapter1 = new GenericAdapter<Cinema>(getActivity(),
+                R.layout.cinemas_item, cinemas) {
             @Override
             public void populate(ViewHolder holder, Cinema cinema) {
-                holder.setTextView(R.id.cinemas_items_tv_name,cinema.getName())
-                        .setTextView(R.id.cinemas_items_tv_location,cinema.getLocation());
+                holder.setTextView(R.id.cinemas_items_tv_name, cinema.getName())
+                        .setTextView(R.id.cinemas_items_tv_location, cinema.getLocation());
             }
 
             @Override
@@ -55,11 +68,35 @@ public class CinemasFragment extends BaseFragment {
                 return factory.deleteCinema(cinema);
             }
         };
-        lv.setAdapter(adapter);
+        lv.setAdapter(adapter1);
+        if (cinema!=null){
+            save(cinema);
+        }
+
+    }
+
+    public void save(Cinema cinema) {
+        adapter1.add(cinema);
+
     }
 
     @Override
     public int getLayoutRes() {
         return R.layout.fragment_cinemas;
     }
+
+    @Override
+    public void search(String kw) {
+        cinemas.clear();
+        if (TextUtils.isEmpty(kw)){
+            cinemas.addAll(factory.get());
+        }else {
+            cinemas.addAll(factory.searchCinemas(kw));
+        }
+        adapter1.notifyDataSetChanged();
+    }
+
+
 }
+
+

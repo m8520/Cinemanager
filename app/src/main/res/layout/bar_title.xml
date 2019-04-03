@@ -49,7 +49,7 @@
         android:paddingEnd="2dp">
 
         <TextView
-            android:id="@+id/bar_title_tv_view_order"
+            android:id="@+id/bar_title_tv_view_search"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:text="@string/bar_title_menu_orders"
